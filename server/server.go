@@ -4,8 +4,8 @@ package server
 import (
 	"context"
 	"errors"
-	"gas-giant/constants"
-	"gas-giant/logging"
+	"exo-planets/constants"
+	"exo-planets/logging"
 	"net/http"
 	"os"
 	"os/signal"

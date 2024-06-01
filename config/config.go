@@ -2,7 +2,7 @@
 package config
 
 import (
-	"gas-giant/logging"
+	"exo-planets/logging"
 	"os"
 
 	"github.com/joho/godotenv"

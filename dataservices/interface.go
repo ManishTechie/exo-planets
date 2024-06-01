@@ -1,7 +1,8 @@
 package dataservices
 
 import (
-	"gas-giant/api/v1"
+	"exo-planets/api/v1"
+
 	"gorm.io/gorm"
 )
 

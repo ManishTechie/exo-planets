@@ -3,8 +3,8 @@ package engine
 import (
 	"github.com/gin-gonic/gin"
 
-	"gas-giant/api/v1/controllers"
-	"gas-giant/dataservices"
+	"exo-planets/api/v1/controllers"
+	"exo-planets/dataservices"
 )
 
 // BuildGinEngine creates the Gin Engine with all the middlewares, groups and routes.
