@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"gas-giant/api/v1"
-	"gas-giant/dataservices"
+	"exo-planets/api/v1"
+	"exo-planets/dataservices"
 )
 
 // ControllerDescriber -

@@ -3,7 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"gas-giant/api/v1/models/response"
+	"exo-planets/api/v1/models/response"
+
 	"github.com/gin-gonic/gin"
 )
 

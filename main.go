@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
-	"gas-giant/config"
-	"gas-giant/constants"
-	"gas-giant/dataservices"
-	"gas-giant/engine"
-	"gas-giant/logging"
-	"gas-giant/server"
+	"exo-planets/config"
+	"exo-planets/constants"
+	"exo-planets/dataservices"
+	"exo-planets/engine"
+	"exo-planets/logging"
+	"exo-planets/server"
 
 	"go.uber.org/zap"
 )

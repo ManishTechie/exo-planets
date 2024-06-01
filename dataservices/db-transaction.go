@@ -1,6 +1,6 @@
 package dataservices
 
-import "gas-giant/api/v1"
+import "exo-planets/api/v1"
 
 // BeginTransaction --
 func (ms *DBClient) BeginTransaction() (txn BackendServiceDBInterface, err *api.APIError) {
