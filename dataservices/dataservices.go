@@ -1,12 +1,14 @@
 package dataservices
 
 import (
+	"exo-planets/api/v1/models/request"
 	"sync"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 
@@ -27,6 +29,7 @@ func (ms *DBClient) Connect(connectionString string) (setupError error) {
 
 		db, err := NewPostgreSQLGormDB(
 			&gorm.Config{
+				Logger: logger.Default.LogMode(logger.Info),
 				NamingStrategy: schema.NamingStrategy{
 					SingularTable: true,
 				},
@@ -41,6 +44,9 @@ func (ms *DBClient) Connect(connectionString string) (setupError error) {
 		if err != nil {
 			setupError = errors.Wrap(err, "Failed to connect")
 		}
+
+		db.AutoMigrate(&request.Exoplanet{})
+
 		appDB = &DBClient{DB: db}
 
 	})

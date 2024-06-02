@@ -24,6 +24,8 @@ func BuildGinEngine(db dataservices.BackendServiceDBInterface, version string) *
 		v1.POST("/exoplanet", controllers.CreateExoplanet)
 		v1.GET("/exoplanet", controllers.GetAllExoplanet)
 		v1.GET("/exoplanet/:id", controllers.GetExoplanet)
+		v1.PUT("/exoplanet/:id", controllers.UpdateExoplanet)
+		v1.DELETE("/exoplanet/:id", controllers.DeleteExoplanet)
 
 	}
 	return router
