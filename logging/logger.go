@@ -30,10 +30,3 @@ func GetLogger() *zap.Logger {
 	}
 	return logger
 }
-
-// Sync flushes any buffered log entries
-func Sync() {
-	if logger != nil {
-		_ = logger.Sync()
-	}
-}

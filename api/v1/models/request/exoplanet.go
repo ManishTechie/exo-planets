@@ -43,6 +43,7 @@ type Exoplanet struct {
 	Type        *ExoplanetsType
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	DeletedAt   *time.Time 
 }
 
 func (e *Exoplanet) BeforeCreate(tx *gorm.DB) (err error) {
