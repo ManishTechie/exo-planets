@@ -20,6 +20,11 @@ func BuildGinEngine(db dataservices.BackendServiceDBInterface, version string) *
 	v1 := router.Group("/api/v1")
 	{
 		v1.GET("/healthcheck", controllers.HealthCheck(db))
+
+		v1.POST("/exoplanet", controllers.CreateExoplanet)
+		v1.GET("/exoplanet", controllers.GetAllExoplanet)
+		v1.GET("/exoplanet/:id", controllers.GetExoplanet)
+
 	}
 	return router
 }
