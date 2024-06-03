@@ -26,6 +26,7 @@ func BuildGinEngine(db dataservices.BackendServiceDBInterface, version string) *
 		v1.GET("/exoplanet/:id", controllers.GetExoplanet)
 		v1.PUT("/exoplanet/:id", controllers.UpdateExoplanet)
 		v1.DELETE("/exoplanet/:id", controllers.DeleteExoplanet)
+		v1.GET("/exoplanet/:id/fuel-estimation/:crew", controllers.CalculateFuelEstimation)
 
 	}
 	return router

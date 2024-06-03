@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"math"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -182,5 +184,59 @@ func DeleteExoplanet(c *gin.Context) {
 
 	c.JSON(http.StatusOK, map[string]string{
 		"message": "exoplanet deleted successfully",
+	})
+}
+
+// GET /exoplanet/:id/fuel-estimation
+// CalculateFuelEstimation -
+func CalculateFuelEstimation(c *gin.Context) {
+
+	logger := logging.GetLogger()
+
+	idStr := c.Param("id")
+	crewStr := c.Param("crew")
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		logger.Error("Invalid UUID", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID"})
+		return
+	}
+
+	crew, err := strconv.ParseFloat(crewStr, 64)
+	if err != nil {
+		logger.Error("invalid crew no", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Crewn no"})
+		return
+	}
+	getExoplanet := response.Exoplanet{}
+	result := dataservices.DB().DB.Where("id=?", id.String()).First(&getExoplanet)
+	if result.Error != nil {
+		logger.Error("error while fetching details from db", zap.Error(result.Error), zap.String("id", id.String()))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	if getExoplanet.ID.String() == "" {
+		logger.Error("not found", zap.String("id", id.String()))
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	distance := getExoplanet.Distance
+	radius := getExoplanet.Radius
+
+	var gravity float64
+
+	if getExoplanet.Type == request.GasGiantType.String() {
+		gravity = 0.5 / math.Pow(radius, 2)
+	} else {
+		gravity = getExoplanet.Mass / math.Pow(radius, 2)
+	}
+
+	fuelEstimation := distance / math.Pow(gravity, 2) * crew
+
+	c.JSON(http.StatusOK, map[string]float64{
+		"fuel-estimation": fuelEstimation,
 	})
 }
