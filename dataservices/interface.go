@@ -2,6 +2,7 @@ package dataservices
 
 import (
 	"exo-planets/api/v1"
+	"exo-planets/dataservices/model"
 
 	"gorm.io/gorm"
 )
@@ -13,8 +14,6 @@ type DBClient struct {
 }
 
 type BackendServiceDBInterface interface {
-
-	//ms-sql
 	Connect(connectionString string) (setupError error)
 	Ping() error
 	Close() error
@@ -22,4 +21,10 @@ type BackendServiceDBInterface interface {
 	BeginTransaction() (txn BackendServiceDBInterface, err *api.APIError)
 	CommitTransaction() (err *api.APIError)
 	RollbackTransaction() (err *api.APIError)
+
+	CreateExoplanet(exoplanet model.Exoplanet) (err error)
+	GetAllExoplanet() (exoplanets []model.Exoplanet, err error)
+	GetExoplanetByID(id string) (exoplanet *model.Exoplanet, err error)
+	UpdateExoplanetByID(id string, exoplanet model.Exoplanet) (err error)
+	DeleteExoplanetByID(id string) (err error)
 }

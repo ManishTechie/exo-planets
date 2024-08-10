@@ -1,7 +1,7 @@
 package dataservices
 
 import (
-	"exo-planets/api/v1/models/request"
+	"exo-planets/dataservices/model"
 	"sync"
 	"time"
 
@@ -45,7 +45,7 @@ func (ms *DBClient) Connect(connectionString string) (setupError error) {
 			setupError = errors.Wrap(err, "Failed to connect")
 		}
 
-		db.AutoMigrate(&request.Exoplanet{})
+		db.AutoMigrate(&model.Exoplanet{})
 
 		appDB = &DBClient{DB: db}
 
