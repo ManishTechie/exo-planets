@@ -10,6 +10,8 @@ import (
 	"exo-planets/logging"
 	"exo-planets/server"
 
+	_ "github.com/golang/mock/mockgen/model"
+
 	"go.uber.org/zap"
 )
 

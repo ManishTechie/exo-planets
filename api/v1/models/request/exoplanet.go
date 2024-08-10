@@ -3,7 +3,6 @@ package request
 import (
 	"errors"
 	"exo-planets/util"
-	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
@@ -41,9 +40,6 @@ type Exoplanet struct {
 	Radius      *float64
 	Mass        *float64
 	Type        *ExoplanetsType
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time 
 }
 
 func (e *Exoplanet) BeforeCreate(tx *gorm.DB) (err error) {

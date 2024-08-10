@@ -4,7 +4,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -13,6 +12,7 @@ import (
 	"exo-planets/api/v1/models/request"
 	"exo-planets/api/v1/models/response"
 	"exo-planets/dataservices"
+	"exo-planets/dataservices/model"
 	"exo-planets/logging"
 	"exo-planets/util"
 )
@@ -20,48 +20,52 @@ import (
 // POST /api/v1/exoplanet
 // CreateExoplanet -
 func CreateExoplanet(c *gin.Context) {
-	var exoplanet request.Exoplanet
+	var payload request.Exoplanet
 	logger := logging.GetLogger()
 
-	if err := c.ShouldBindJSON(&exoplanet); err != nil {
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		logger.Error("error while binding the request", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := exoplanet.Validate(); err != nil {
+	if err := payload.Validate(); err != nil {
 		logger.Error("error while valdating the request", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	exoplanet.ID = util.GenerateUUID()
-	if err := dataservices.DB().DB.Create(&exoplanet).Error; err != nil {
+	exoplanet := model.Exoplanet{
+		ID:          util.GenerateUUID(),
+		Name:        payload.Name,
+		Description: payload.Description,
+		Distance:    payload.Distance,
+		Radius:      payload.Radius,
+		Mass:        payload.Mass,
+		Type:        (*model.ExoplanetsType)(payload.Type),
+	}
+
+	if err := dataservices.DB().CreateExoplanet(exoplanet); err != nil {
 		logger.Error("error while creating the exoplanet", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	logger.Info("exoplanet created")
-	c.JSON(http.StatusCreated, exoplanet)
+	c.JSON(http.StatusCreated, payload)
 }
 
 // GET /api/v1/exoplanet
 // GetAllExoplanet -
 func GetAllExoplanet(c *gin.Context) {
-	var exoplanets []request.Exoplanet
 
 	logger := logging.GetLogger()
 
-	result := dataservices.DB().DB.Where("deleted_at IS NULL").Find(&exoplanets)
-	if result.Error != nil {
-		logger.Error("error while getting details from DB", zap.Error(result.Error))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	exoplanets, err := dataservices.DB().GetAllExoplanet()
+	if err != nil {
+		logger.Error("error while getting details from DB", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if len(exoplanets) == 0 {
-		logger.Error("not found")
-		c.JSON(http.StatusNotFound, gin.H{"error": "exoplanet not found"})
-		return
-	}
+
 	logger.Info("exoplanets found", zap.Int("total no of exoplanets", len(exoplanets)))
 	c.JSON(http.StatusCreated, exoplanets)
 
@@ -73,7 +77,6 @@ func GetExoplanet(c *gin.Context) {
 	logger := logging.GetLogger()
 
 	idStr := c.Param("id")
-	var exoplanet response.Exoplanet
 
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -82,17 +85,13 @@ func GetExoplanet(c *gin.Context) {
 		return
 	}
 
-	result := dataservices.DB().DB.Where("id=? and deleted_at IS NULL", id.String()).First(&exoplanet)
-	if result.Error != nil {
-		logger.Error("error while fetching details from db", zap.Error(result.Error), zap.String("id", id.String()))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	exoplanet, err := dataservices.DB().GetExoplanetByID(id.String())
+	if err != nil {
+		logger.Error("error while fetching details from db", zap.Error(err), zap.String("id", id.String()))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if exoplanet.ID == nil {
-		logger.Error("not found", zap.String("id", id.String()))
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-		return
-	}
+
 	logger.Info("exoplanet found")
 	c.JSON(http.StatusCreated, exoplanet)
 
@@ -102,9 +101,9 @@ func GetExoplanet(c *gin.Context) {
 // UpdateExoplanet -
 func UpdateExoplanet(c *gin.Context) {
 	logger := logging.GetLogger()
-	var exoplanet request.Exoplanet
+	var payload request.Exoplanet
 
-	if err := c.ShouldBindJSON(&exoplanet); err != nil {
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		logger.Error("error while binding the request", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -118,21 +117,23 @@ func UpdateExoplanet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID"})
 		return
 	}
-	getExoplanet := response.Exoplanet{}
-	result := dataservices.DB().DB.Where("id=?", id.String()).First(&getExoplanet)
-	if result.Error != nil {
-		logger.Error("error while fetching details from db", zap.Error(result.Error), zap.String("id", id.String()))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	_, err = dataservices.DB().GetExoplanetByID(id.String())
+	if err != nil {
+		logger.Error("error while fetching details from db", zap.Error(err), zap.String("id", id.String()))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if getExoplanet.ID.String() == "" {
-		logger.Error("not found", zap.String("id", id.String()))
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-		return
+	payloadUpdate := model.Exoplanet{
+		Name:        payload.Name,
+		Description: payload.Description,
+		Distance:    payload.Distance,
+		Radius:      payload.Radius,
+		Mass:        payload.Mass,
+		Type:        (*model.ExoplanetsType)(payload.Type),
 	}
 
-	if err := dataservices.DB().DB.Where("id=?", id.String()).Omit("id").Updates(&exoplanet).Error; err != nil {
+	if err := dataservices.DB().UpdateExoplanetByID(id.String(), payloadUpdate); err != nil {
 		logger.Error("error while updating exoplanet details", zap.String("id", id.String()))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
@@ -159,22 +160,15 @@ func DeleteExoplanet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID"})
 		return
 	}
-	getExoplanet := response.Exoplanet{}
-	result := dataservices.DB().DB.Where("id=?", id.String()).First(&getExoplanet)
-	if result.Error != nil {
-		logger.Error("error while fetching details from db", zap.Error(result.Error), zap.String("id", id.String()))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	_, err = dataservices.DB().GetExoplanetByID(id.String())
+	if err != nil {
+		logger.Error("error while fetching details from db", zap.Error(err), zap.String("id", id.String()))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if getExoplanet.ID.String() == "" {
-		logger.Error("not found", zap.String("id", id.String()))
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-		return
-	}
-
-	result = dataservices.DB().DB.Model(request.Exoplanet{}).Where("id=?", id.String()).Update("deleted_at", time.Now())
-	if result.Error != nil {
+	err = dataservices.DB().DeleteExoplanetByID(id.String())
+	if err != nil {
 		logger.Error("error while deleting the exoplanet", zap.String("id", id.String()))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return

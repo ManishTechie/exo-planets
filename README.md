@@ -1,1 +1,1 @@
-# gas-giant
+Exo-planet
