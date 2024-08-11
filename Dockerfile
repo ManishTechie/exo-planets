@@ -9,9 +9,6 @@ WORKDIR /build
 # Copy the source code into the container
 COPY . .
 
-# Set environment values
-ENV DB_CONNECTION_STRING="host=postgres user=postgres password=mysecretpassword dbname=exoplanet-data port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-
 # Download all dependencies
 RUN go mod download
 
